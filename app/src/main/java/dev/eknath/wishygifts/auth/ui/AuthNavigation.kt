@@ -137,8 +137,7 @@ fun AuthNavigation(
                 )
 
                 composable(route = "authenticated") {
-                    AuthenticatedHomeScreen(onSignOut = {})
-//                    authenticatedContent()
+                    authenticatedContent()
                 }
             }
 
