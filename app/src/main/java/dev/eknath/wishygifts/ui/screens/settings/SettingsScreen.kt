@@ -11,17 +11,24 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.eknath.wishygifts.auth.viewmodel.AuthViewModel
 
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    onSignOut: () -> Unit
+    authViewModel: AuthViewModel,
+    onSignOut: () -> Unit,
+    onEditProfile: () -> Unit = {}
 ) {
+    val uiState by authViewModel.uiState.collectAsState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -29,8 +36,15 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Welcome to DynamicNavigation3!",
+        // Display user's name if available
+        uiState.userProfile?.displayName?.let { displayName ->
+            Text(
+                text = "Hello, $displayName!",
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center
+            )
+        } ?: Text(
+            text = "Welcome to WishyGifts!",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -38,13 +52,26 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "You are now authenticated and viewing the test UI.",
+            text = "You are now authenticated and viewing the settings screen.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Edit Profile Button
+        Button(
+            onClick = onEditProfile,
+            modifier = Modifier
+                .fillMaxWidth(0.7f)
+                .height(48.dp)
+        ) {
+            Text("Edit Profile")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Sign Out Button
         Button(
             onClick = onSignOut,
             modifier = Modifier

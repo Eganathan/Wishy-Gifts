@@ -21,7 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dev.eknath.wishygifts.auth.viewmodel.AuthViewModel
-import dev.eknath.wishygifts.navigation.AuthenticatedHomeScreen
+import dev.eknath.wishygifts.auth.ui.ProfileUpdateScreen
 import dev.eknath.wishygifts.ui.components.ErrorSnackbar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,13 +36,21 @@ fun AuthNavigation(
     val snackbarHostState = remember { SnackbarHostState() }
     val uiState by authViewModel.uiState.collectAsState()
 
-    // Handle successful authentication
-    LaunchedEffect(uiState.isAuthenticated) {
+    // Handle successful authentication and profile check
+    LaunchedEffect(uiState.isAuthenticated, uiState.needsProfileUpdate) {
         if (uiState.isAuthenticated) {
-            // Navigate to authenticated route
-            navController.navigate("authenticated") {
-                // Clear the back stack so user can't go back to auth screens
-                popUpTo("landing") { inclusive = true }
+            if (uiState.needsProfileUpdate) {
+                // Navigate to profile update screen
+                navController.navigate("profile_update") {
+                    // Clear the back stack so user can't go back to auth screens
+                    popUpTo("landing") { inclusive = true }
+                }
+            } else {
+                // Navigate to authenticated route
+                navController.navigate("authenticated") {
+                    // Clear the back stack so user can't go back to auth screens
+                    popUpTo("landing") { inclusive = true }
+                }
             }
         }
     }
@@ -53,6 +61,13 @@ fun AuthNavigation(
             // If we're on the forgot password screen, navigate back to login
             if (navController.currentBackStackEntry?.destination?.route == "forgot_password") {
                 navController.navigate("login")
+            }
+            // If we're on the profile update screen, navigate to authenticated route
+            else if (navController.currentBackStackEntry?.destination?.route == "profile_update") {
+                navController.navigate("authenticated") {
+                    // Clear the back stack so user can't go back to profile update screen
+                    popUpTo("profile_update") { inclusive = true }
+                }
             }
             // Reset success state after handling
             authViewModel.resetSuccessState()
@@ -135,6 +150,15 @@ fun AuthNavigation(
                         )
                     }
                 )
+
+                composable(route = "profile_update") {
+                    ProfileUpdateScreen(
+                        currentUser = uiState.userProfile,
+                        onUpdateProfile = { displayName ->
+                            authViewModel.updateUserProfile(displayName)
+                        }
+                    )
+                }
 
                 composable(route = "authenticated") {
                     authenticatedContent()
